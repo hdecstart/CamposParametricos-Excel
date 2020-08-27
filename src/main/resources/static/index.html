@@ -19,16 +19,27 @@
                     <h3>Data control</h3>
                 </div>
                 <div class="card-body">
-                    <div class="col-md-12">
-                        <div class="text-center py-4">
-                            <button type="button" class="btn btn-outline-dark" data-toggle="modal"
-                                data-target="#exampleModalCenter">Add field</button>
-                            <button type="button" class="btn btn-outline-primary" onclick="saveData()">Save</button>
-                            <button type="button" class="btn btn-outline-success" onclick="exportCSV()">Export</button>
-                            <span class="alert-warning"></span>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="text-center py-4">
+                                <button type="button" class="btn btn-outline-dark" data-toggle="modal"
+                                    data-target="#exampleModalCenter">Add field</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="saveData()">Save</button>
+                                <button type="button" class="btn btn-outline-success"
+                                    onclick="exportCSV()">Export</button>
+                                <span class="alert-warning"></span>
+                            </div>
+                            <div data-id="fieldsContent" class="text-center py-4"
+                                style="overflow: auto;overflow-x: hidden; max-height: 500px">
+                            </div>
                         </div>
-                        <div data-id="fieldsContent" class="text-center py-4"
-                            style="overflow: auto;overflow-x: hidden; max-height: 500px">
+                        <div class="col-md-6" style="overflow: auto;max-height: 450px"">
+                            <table class="table table-bordered">
+                                <thead id="tableHead">
+                                    <tr></tr>
+                                </thead>
+                                <tbody id="tableBody"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -67,14 +78,21 @@
 
     <script>
         var controlId = 0;
+        var aHeaders = new Array();
         var aFields = new Array();
         var aData = new Array();
         const addField = () => {
             let content = document.querySelector("div[data-id='fieldsContent']");
+            let header = document.querySelector("#nameForNewElement").value;
+
+            if ( header.length == 0 || header == '' ){
+                alert('Bad name');
+                return;
+            }
 
             let baseField = '<div data-id="group_' + controlId + '" class="form-group row">' +
-                '<label class="col-sm-2 col-form-label">' + document.querySelector("#nameForNewElement").value + '</label>' +
-                '<div class="col-md-8">' +
+                '<label class="col-sm-3 col-form-label">' + header + '</label>' +
+                '<div class="col-md-6 col-sm-5">' +
                 '<input type="text" class="form-control" data-id="field_' + controlId + '" value="">' +
                 '</div>' +
                 '<button class="btn btn-outline-danger" onclick="removeFiled(' + controlId + ')">x</button>' +
@@ -84,8 +102,12 @@
             document.querySelector("#nameForNewElement").focus();
 
             content.innerHTML += baseField;
-            aFields.push('field_'+controlId);
+            aHeaders.push(header)
+            aFields.push('field_' + controlId);
             controlId++;
+
+            let tHead = document.querySelector("#tableHead>tr");
+            tHead.innerHTML += '<th>' + header + '</th>';
         }
 
         const removeFiled = (id) => {
@@ -93,10 +115,15 @@
         }
 
         const saveData = () => {
+            let row = "";
             aFields.forEach(field => {
-                aData.push(document.querySelector("input[data-id='"+field+"'").value);
-                document.querySelector("input[data-id='"+field+"'").value = '';
-            })
+                let inputField = document.querySelector("input[data-id='" + field + "'");
+                aData.push(inputField.value);
+                row += "<td>"+inputField.value+"</td>"
+                inputField.value = '';
+            });
+            let tBody = document.querySelector("#tableBody");
+            tBody.innerHTML += '<tr>' + row + '</tr>';
         }
 
         const exportCSV = () => {
@@ -104,11 +131,11 @@
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
                     document.querySelector(".alert-warning").innerText = xhttp.responseText;
-                }else{
+                } else {
                     document.querySelector(".alert-warning").innerText = xhttp.responseText;
                 }
             };
-            xhttp.open("GET","/service/export?l="+aFields.length+"&data=" + aData)
+            xhttp.open("GET", "/service/export?l=" + aFields.length + "&header=" + aHeaders + "&data=" + aData)
             xhttp.send();
         }
 

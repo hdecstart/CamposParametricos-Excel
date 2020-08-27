@@ -1,9 +1,8 @@
 package com.hdecstudio.generation.data.controller;
 
-import java.io.FileWriter;
+import java.io.File;
 import java.io.IOException;
-
-import com.opencsv.CSVWriter;
+import java.io.PrintWriter;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,27 +13,31 @@ import org.springframework.web.bind.annotation.RestController;
 public class Resource {
     
     @RequestMapping("/export")
-    public String saveCSV(@RequestParam("l") Integer l, @RequestParam("data") String data){
+    public String saveCSV(@RequestParam("l") Integer l, 
+    @RequestParam("header") String header,
+    @RequestParam("data") String data){
         String msg = "";
         try{
             String[] control = data.split(",");
-            String[] row = new String[control.length/l];
 
             String fileCSV = "C:\\DataGeneric\\data.csv";
-            CSVWriter writer = new CSVWriter(new FileWriter(fileCSV));
+            File file = new File(fileCSV);
+            PrintWriter pw = new PrintWriter(file);
+            pw.println(header);
 
             int cont = 0;
             for (String item : control) {
-                row[cont] = item;
-                if ( cont == l-1 ){
-                    writer.writeNext(row);
+                if ( cont != l -1 ){
+                    pw.print(item+",");
+                }else{
+                    pw.println(item);
                     cont = 0;
                     continue;
                 }
                 cont++;
             }
             
-            writer.close();
+            pw.close();
             msg = "Exported";
         }catch(IOException io){
             msg = "Internal error";
