@@ -2,8 +2,8 @@
 
 Crear campos parametricos y exporta los datos en formarto .csv.
 
-Backend - Java
-Frontend - JavaScript
+- Backend - Java (Spring Boot / Spring MVC)
+- Frontend - JavaScript
 
 # Como usar
 - Crear carpeta DataGeneric en el disco C: (Windows)
